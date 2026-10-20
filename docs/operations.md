@@ -22,6 +22,47 @@ The systemd and Compose owners are
 [`compose.yaml`](../compose.yaml), and
 [`compose.production.yaml`](../compose.production.yaml).
 
+## Container logs
+
+Every production service logs with the `json-file` driver, so
+`journalctl -u cloud-harness-mcp.service` and `docker logs` are the baseline.
+
+[`deploy/dozzle/compose.yaml`](../deploy/dozzle/compose.yaml) is an optional
+standalone [Dozzle](https://dozzle.dev) stack that browses those logs in a UI.
+It is not part of the harness Compose project, so harness releases never start
+it and the ingress boundary is unchanged:
+
+```bash
+sudo install -d -m 0755 /etc/cloud-harness-dozzle
+read -rsp 'Dozzle admin password: ' DOZZLE_PW; echo
+printf '%s\n' "$DOZZLE_PW" | sudo docker run -i --rm amir20/dozzle:v10.6.15 generate admin \
+  | sudo tee /etc/cloud-harness-dozzle/users.yml >/dev/null
+unset DOZZLE_PW
+sudo chmod 0600 /etc/cloud-harness-dozzle/users.yml
+sudo docker compose -f /opt/cloud-harness-mcp/repo/deploy/dozzle/compose.yaml up -d
+ssh -L 8080:127.0.0.1:8080 <host> # then open http://127.0.0.1:8080
+```
+
+Use `-i` without `-t`: a TTY merges the password prompt into the generated
+YAML. Keep the file root-owned at mode `0600`; Dozzle runs as root but with
+`cap_drop: [ALL]`, so it cannot read a file another user owns.
+
+Dozzle reads the Docker socket, which is host-root equivalent, and it sees every
+container's stdout, including workspace executors. It therefore stays bound to
+loopback, refuses to start without the `users.yml` login, and keeps container
+actions and shells disabled. `DOZZLE_DATA_DIR` relocates the users file and
+`DOZZLE_HOST_PORT` the loopback port. Dozzle output carries none of the harness
+redaction that applies to agent logs and tool results, so treat it as
+operator-only host telemetry rather than a shareable log source.
+
+The stack is not part of a release, so the image tag is updated in the repo:
+bump `amir20/dozzle:v10.6.15` in `deploy/dozzle/compose.yaml` on `main`, deploy
+that commit, then rerun the `docker compose ... up -d` line above once the new
+checkout is live. Never edit the deployed checkout instead:
+[`deploy/scripts/deploy-release.sh`](../deploy/scripts/deploy-release.sh) forces
+the checkout to the release SHA and rejects a dirty tree, untracked files
+included, so the edit is discarded and can fail the next deploy.
+
 ## Persistent and ephemeral data
 
 The production defaults place:
