@@ -71,6 +71,8 @@ export const ProviderCredentialMetadataSchema = z.object({
   provider: ModelProviderKindSchema,
   authMode: ProviderAuthModeSchema,
   activeVersion: z.number().int().positive(),
+  // Fences rotate and delete; the client must echo it back.
+  generation: z.number().int().positive(),
   status: ProviderCredentialStatusSchema,
   syncStatus: ProviderCredentialSyncStatusSchema,
   createdAt: z.number().int(),

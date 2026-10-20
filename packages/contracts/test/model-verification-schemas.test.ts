@@ -80,7 +80,7 @@ describe('model connection verification contracts', () => {
     const lastVerification = { outcome: 'verified', checkedAt: 2, revisionId: null };
     expect(ModelLastVerificationSchema.parse(lastVerification)).toEqual(lastVerification);
     const credential = {
-      id: credentialId, principalId: 'p', label: 'k', provider: 'openai', authMode: 'bearer', activeVersion: 1,
+      id: credentialId, principalId: 'p', label: 'k', provider: 'openai', authMode: 'bearer', activeVersion: 1, generation: 1,
       status: 'ACTIVE', syncStatus: 'SYNCED', createdAt: 1, updatedAt: 1
     };
     expect(ProviderCredentialMetadataSchema.parse(credential)).toEqual(credential);

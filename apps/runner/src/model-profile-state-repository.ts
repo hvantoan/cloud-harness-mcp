@@ -555,6 +555,7 @@ export class ModelProfileStateRepository {
       provider: input.provider,
       authMode,
       activeVersion: 1,
+      generation: 1,
       status: 'ACTIVE',
       syncStatus: 'SYNCED',
       createdAt: now,
@@ -564,7 +565,7 @@ export class ModelProfileStateRepository {
 
   listCredentials(principalId: string): ProviderCredentialMetadata[] {
     const rows = this.database.prepare(`
-      SELECT id, principal_id, label, provider, auth_mode, active_version, status, created_at, updated_at
+      SELECT id, principal_id, label, provider, auth_mode, active_version, generation, status, created_at, updated_at
       FROM model_provider_credentials
       WHERE principal_id = ?
       ORDER BY created_at DESC
@@ -575,6 +576,7 @@ export class ModelProfileStateRepository {
       provider: ModelProviderKind;
       auth_mode: ProviderAuthMode;
       active_version: number;
+      generation: number;
       status: 'ACTIVE' | 'DISABLED' | 'REVOKED';
       created_at: number;
       updated_at: number;
@@ -594,6 +596,7 @@ export class ModelProfileStateRepository {
         provider: row.provider,
         authMode: row.auth_mode,
         activeVersion: row.active_version,
+        generation: row.generation,
         status: row.status,
         syncStatus: 'SYNCED' as const,
         createdAt: row.created_at,
@@ -671,6 +674,7 @@ export class ModelProfileStateRepository {
       provider: cred.provider,
       authMode: cred.auth_mode,
       activeVersion: nextVersion,
+      generation: cred.generation + 1,
       status: cred.status,
       syncStatus: 'SYNCED',
       createdAt: cred.created_at,

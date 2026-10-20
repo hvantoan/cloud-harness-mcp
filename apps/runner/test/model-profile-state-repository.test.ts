@@ -88,8 +88,11 @@ describe('ModelProfileStateRepository', () => {
     expect(snapshot.credentials[cred1.id]?.secret).toBe('sk-new-secret-67890');
     expect(snapshot.credentials[cred1.id]?.provider).toBe('openai');
 
-    // Delete credential
-    repo.deleteCredential(p1, cred1.id, 2);
+    // Delete credential with the generation the list exposes, which is what the Dashboard echoes.
+    const listed = repo.listCredentials(p1);
+    expect(listed).toHaveLength(1);
+    expect(listed[0]?.generation).toBe(2);
+    repo.deleteCredential(p1, cred1.id, listed[0]!.generation);
     expect(repo.listCredentials(p1)).toHaveLength(0);
   });
 

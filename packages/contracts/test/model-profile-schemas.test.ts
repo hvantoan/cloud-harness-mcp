@@ -53,6 +53,7 @@ describe('Model Profile & Credential Contracts', () => {
       provider: 'openai',
       authMode: 'bearer',
       activeVersion: 1,
+      generation: 1,
       status: 'ACTIVE',
       syncStatus: 'SYNCED',
       createdAt: Date.now(),
